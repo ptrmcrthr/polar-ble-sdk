@@ -25,13 +25,12 @@ class TypeUtils {
     
     static func convertArrayToUnsignedInt(_ data: Data) -> UInt {
         assert(data.count <= 4)
-        var value: UInt = 0
-        memcpy(&value, (data as NSData).bytes, data.count)
-        let mask = (UInt.max << ((data.count * 8) - 1))
-        if (value & mask) != 0 {
-            value |= mask
-        }
-        return value
+        // Plain little-endian assemble with no sign extension, matching the
+        // Android SDK. The previous implementation was copy-pasted from the
+        // signed variant and wrongly sign-extended, so any 2-byte value with
+        // the top bit set (>= 32768) became a huge UInt and the Int(...) wrapper
+        // in OfflineRecordingData.parsePacketSize() trapped. See ptrmcrthr/swimset#11.
+        return data.reversed().reduce(0) { ($0 << 8) + UInt($1) }
     }
 
     static func convertArrayToUnsignedInt64(_ data: Data, offset: Int, size: Int) -> UInt64 {
