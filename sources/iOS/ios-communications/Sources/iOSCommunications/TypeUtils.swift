@@ -26,10 +26,10 @@ class TypeUtils {
     static func convertArrayToUnsignedInt(_ data: Data) -> UInt {
         assert(data.count <= 4)
         // Plain little-endian assemble with no sign extension, matching the
-        // Android SDK. The previous implementation was copy-pasted from the
-        // signed variant and wrongly sign-extended, so any 2-byte value with
-        // the top bit set (>= 32768) became a huge UInt and the Int(...) wrapper
-        // in OfflineRecordingData.parsePacketSize() trapped. See ptrmcrthr/swimset#11.
+        // Android SDK, which reads this correctly. The previous implementation
+        // was copy-pasted from the signed variant and wrongly sign-extended, so
+        // any value of 32768 or greater became a huge UInt that then overflowed
+        // the Int(...) conversion in OfflineRecordingData.parsePacketSize().
         return data.reversed().reduce(0) { ($0 << 8) + UInt($1) }
     }
 
